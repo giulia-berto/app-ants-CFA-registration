@@ -1,15 +1,17 @@
 #!/bin/bash
-#PBS -l nodes=1:ppn=16
-#PBS -l walltime=02:00:00
+#PBS -k o
+#PBS -l nodes=1:ppn=4,walltime=01:00:00,vmem=8gb
 
-# Copyright (c) 2020 brainlife.io at University of Texas at Austin and Indiana University
-# 
-# This is the main file run by the brainlife.io orchestration system
-#
-# Author: Franco Pestilli
-
-# make output directory
 mkdir -p out_dir
 
-# run the actual python code
-singularity exec docker://brainlife/dipy:1.1.1 python3 main.py
+cfa=`jq -r '.peaks' config.json`
+fa_template=`jq -r '.fa_template' config.json`
+
+if [ $fa_template == 'FMRIB58_FA_1mm' ]; then 
+	template=FMRIB58_FA_1mm.nii.gz
+elif [ $fa_template == 'IITmean_FA' ]; then 
+	template=IITmean_FA.nii.gz
+fi 
+
+echo "ANTs registration"
+singularity exec -e docker://giuliaberto/ants2-mrtrix3-fsl6:1.1 ./run_mni_registration.sh $cfa $template
