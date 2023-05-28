@@ -2,7 +2,7 @@
 #PBS -k o
 #PBS -l nodes=1:ppn=4,walltime=01:00:00,vmem=8gb
 
-mkdir -p out_dir
+mkdir -p output
 
 cfa=`jq -r '.peaks' config.json`
 fa_template=`jq -r '.fa_template' config.json`
@@ -14,4 +14,11 @@ elif [ $fa_template == 'IITmean_FA' ]; then
 fi 
 
 echo "ANTs registration"
-singularity exec -e docker://giuliaberto/ants2-mrtrix3-fsl6:1.1 ./run_mni_registration.sh $cfa $template
+singularity exec -e docker://brainlife/ants:2.2.0 ./run_mni_registration.sh $cfa $template
+
+if [ -f 'output/peaks.nii.gz' ]; then 
+    echo "Colored FA registered to the template."
+else 
+    echo "Failed."
+    exit 1
+fi
